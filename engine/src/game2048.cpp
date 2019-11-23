@@ -1,33 +1,30 @@
 #include "Board.hpp"
+#include "Move.hpp"
 #include "Node.hpp"
 #include "Player.hpp"
 #include "State.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <list>
+#include <utility>
 
 using namespace std;
 using namespace game2048;
 
 int main(int, char**)
 {
-    int arr[4][4] = {
-        { 0, 0, 0, 0 },
-        { 1, 7, 5, 7 },
-        { 6, 0, 0, 9 },
-        { 0, 0, 4, 0 }
+    int arr_raw[4][4] = {
+        { 11, 10, 4, 0 },
+        { 12, 3 , 4, 0 },
+        { 0 , 3 , 4, 0 },
+        { 0 , 0 , 4, 5 }
     };
 
-    Node node(Board(arr), 0, Player::COMPUTER);
-    node.expand();
+    State state(Board::fromArray(arr_raw), Player::HUMAN);
+    Node node(state);
 
-    cout << boolalpha;
-    cout << node.hasChild() << endl;
-
-    for (auto& child : node.getChildren()) {
-        child.getState().getBoard().print();
-        cout << "################################\n"
-             << endl;
-    }
+    clog << node << endl;
 
     return 0;
 }

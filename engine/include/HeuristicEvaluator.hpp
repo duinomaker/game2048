@@ -1,7 +1,7 @@
 #ifndef __GAME2048_HEURISTICEVALUATOR__
 #define __GAME2048_HEURISTICEVALUATOR__
 #include "IEvaluator.hpp"
-#include "State.hpp"
+#include "Node.hpp"
 
 namespace game2048 {
 

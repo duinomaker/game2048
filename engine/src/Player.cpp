@@ -5,7 +5,7 @@ namespace game2048 {
 
 using namespace std;
 
-std::ostream& operator<<(std::ostream& out, Player player)
+ostream& operator<<(ostream& out, Player player)
 {
     switch (player) {
     case Player::HUMAN:

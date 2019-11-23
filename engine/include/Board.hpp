@@ -1,8 +1,10 @@
 #ifndef __GAME2048_BOARD__
 #define __GAME2048_BOARD__
-#include "Direction.hpp"
+#include "Move.hpp"
 #include <cstdint>
+#include <iostream>
 #include <list>
+#include <utility>
 
 #define _TO_OFFSET(row, col) ((row << 4) | (col << 2))
 #define GET_UNIT(board, row, col) ((board >> _TO_OFFSET(row, col)) & UINT64_C(0xf))
@@ -10,34 +12,23 @@
 
 namespace game2048 {
 
-class Board {
-private:
-    Direction m_lastMove;
-    std::uint64_t m_board;
+namespace Board {
 
-public:
-    Board(std::uint64_t board = 0);
+    std::uint64_t fromArray(int arr[][4]);
 
-    Board(const Board& board);
+    void toArray(std::uint64_t board, int arr[][4]);
 
-    Board(int board[4][4]);
+    bool isLegalMove(std::uint64_t board, Move direction);
 
-    void reset(std::uint64_t board = 0);
+    int performMove(std::uint64_t& board, Move direction);
 
-    void reset(int board[4][4]);
+    void performMove(std::uint64_t& board, Move direction, const std::pair<int, int>& coord);
 
-    void reset(const Board& board);
+    std::list<std::pair<int, int>> getAllSlots(std::uint64_t board);
 
-    void toArray(int board[4][4]) const;
+    void represent(std::uint64_t board, std::ostream& out = std::clog);
 
-    void print() const;
-
-    bool isLegalMove(Direction direction) const;
-
-    int performMove(Direction direction);
-
-    std::list<Board> getComputerMovedBoards() const;
-};
+} // namespace Board
 
 } // namespace game2048
 

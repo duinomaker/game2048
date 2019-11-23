@@ -1,42 +1,39 @@
 #ifndef __GAME2048_STATE__
 #define __GAME2048_STATE__
 #include "Board.hpp"
-#include "Direction.hpp"
+#include "Move.hpp"
 #include "Player.hpp"
+#include <cstdint>
+#include <iostream>
+#include <list>
 
 namespace game2048 {
 
 class State {
+    friend std::ostream& operator<<(std::ostream& out, const State& state);
+
 private:
     int m_score;
     int m_score_delta;
     Player m_player;
-    Board m_board;
+    Move m_last_move;
+    std::uint64_t m_board;
 
 public:
-    State();
+    State(
+        std::uint64_t board = 0,
+        Player player = Player::UNKNOWN, Move last_move = Move::UNKNOWN,
+        int score = 0, int score_delta = 0);
 
-    State(const State& state);
-
-    State(const Board& board, int score, Player player);
-
-    void reset();
-
-    void reset(const State& state);
-
-    void reset(const Board& board, int score, Player player);
-
-    Board& getBoard() { return m_board; }
-
-    const Board& getBoard() const { return m_board; }
-
-    const int getScore() const { return m_score; }
+    int getScore() const { return m_score; }
 
     void setScore(int score) { m_score = score; }
 
-    void increaseScore(int score_delta);
+    Player getPlayer() const { return m_player; }
 
-    const Player getPlayer() const { return m_player; }
+    Move getLastMove() const { return m_last_move; }
+
+    std::list<State> getAllSubStates() const;
 
     bool isEndOfGame() const;
 };

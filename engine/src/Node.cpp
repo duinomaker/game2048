@@ -1,79 +1,41 @@
 #include "Node.hpp"
-#include "Board.hpp"
-#include "Direction.hpp"
 #include "Player.hpp"
 #include "State.hpp"
+#include <cstddef>
+#include <list>
 
 namespace game2048 {
 
 using namespace std;
 
-Node::Node()
-    : m_prob(0.0)
-    , m_size(0)
-    , m_state()
-    , m_children()
-{
-}
-
 Node::Node(const State& state)
-    : m_prob(0.0)
+    : m_weight(0.0)
+    , m_value(0.0)
     , m_size(0)
     , m_state(state)
     , m_children()
 {
 }
 
-Node::Node(const Board& board, int score, Player player)
-    : m_prob(0.0)
-    , m_size(0)
-    , m_state(board, score, player)
-    , m_children()
-{
-}
-
-void Node::reset()
-{
-    m_prob = 0.0;
-    m_size = 0;
-    m_state.reset();
-    m_children.clear();
-}
-
-void Node::reset(const Board& board, int score, Player player)
-{
-    m_prob = 0.0;
-    m_size = 0;
-    m_state.reset(board, score, player);
-    m_children.clear();
-}
-
 size_t Node::expand()
 {
     m_size = 0;
-
     switch (m_state.getPlayer()) {
-    case Player::HUMAN:
-        for (Direction direction : allDirections) {
-            if (m_state.getBoard().isLegalMove(direction)) {
-                State state_new(m_state.getBoard(), m_state.getScore(), Player::HUMAN);
-                state_new.increaseScore(state_new.getBoard().performMove(direction));
-                m_children.emplace_back(state_new);
-                ++m_size;
-            }
+        double temp;
+        for (const State& state : m_state.getAllSubStates()) {
+            m_children.emplace_back(state);
         }
-
+        m_size = m_children.size();
+    case Player::HUMAN:
+        temp = static_cast<double>(m_size);
+        for (Node& child : m_children) {
+            child.m_weight = 1.0 / temp;
+        }
         break;
     case Player::COMPUTER:
-        for (const Board& board : m_state.getBoard().getComputerMovedBoards()) {
-            for (Direction direction : allDirections) {
-                if (board.isLegalMove(direction)) {
-                    State state_new(board, m_state.getScore(), Player::COMPUTER);
-                    state_new.increaseScore(state_new.getBoard().performMove(direction));
-                    m_children.emplace_back(state_new);
-                    ++m_size;
-                }
-            }
+        temp = static_cast<double>(m_size + m_size / 2);
+        for (Node& child : m_children) {
+            child.m_weight = static_cast<double>(child.getState().getLastMove()) / temp;
         }
         break;
 
@@ -81,8 +43,17 @@ size_t Node::expand()
     default:
         break;
     }
-
     return m_size;
+}
+
+std::ostream& operator<<(std::ostream& out, const Node& node)
+{
+    out << node.m_state
+        << "\n* Children  : " << node.m_size
+        << "\n* Weight    : " << node.m_weight
+        << "\n* Value     : " << node.m_value;
+
+    return out;
 }
 
 } // namespace game2048
