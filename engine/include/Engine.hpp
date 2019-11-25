@@ -1,7 +1,9 @@
 #ifndef __GAME2048_ENGINE__
 #define __GAME2048_ENGINE__
+#include "Board.hpp"
 #include "IEvaluator.hpp"
 #include "Node.hpp"
+#include "Player.hpp"
 #include <memory>
 #ifdef USE_CACHE
 #include <unordered_map>
@@ -9,26 +11,34 @@
 
 namespace game2048 {
 
+#ifdef USE_CACHE
+struct CacheEntry {
+    double value;
+    int depth;
+};
+#endif
+
 class Engine {
 public:
-    static const int DEFAULT_LEVEL = 3;
+    static const int MAX_DEPTH;
+    static const double MIN_WEIGHT;
 
 private:
-    int m_level;
-    Node m_root;
     std::unique_ptr<IEvaluator> m_evaluator;
 #ifdef USE_CACHE
-    std::unordered_map<uint64_t, double> m_cache;
+    std::unordered_map<board_t, CacheEntry> m_cache;
 #endif
 
 public:
     explicit Engine(IEvaluator* evaluator = nullptr);
 
 #ifdef USE_CACHE
-    bool hitCache(const Node& node) const;
+    bool hitCache(Node& node) const;
 #endif
 
-    double evaluate(const Node& node) const;
+    void _evaluate(Node& node);
+
+    double evaluate(board_t board, Player player);
 };
 
 } // namespace game2048

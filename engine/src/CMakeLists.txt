@@ -15,9 +15,9 @@ add_library(${TARGET_LIB} STATIC ${LIB_SOURCES})
 target_compile_features(${TARGET_LIB} PUBLIC cxx_std_11)
 
 # add the linked libraries
-if (${OPERATING_SYSTEM} STREQUAL "Linux")
-    target_link_libraries(${TARGET_LIB} rt pthread)
-endif()
+# if (${OPERATING_SYSTEM} STREQUAL "Linux")
+#     target_link_libraries(${TARGET_LIB} rt pthread)
+# endif()
 
 set_target_properties(
     ${TARGET_LIB} PROPERTIES

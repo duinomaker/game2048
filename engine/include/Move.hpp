@@ -6,8 +6,8 @@ namespace game2048 {
 
 enum class Move {
     UNKNOWN = 0,
-    COMPUTER_1 = 1,
-    COMPUTER_2 = 2,
+    RANDOM_1 = 1,
+    RANDOM_2 = 2,
     UP = 3,
     DOWN = 4,
     LEFT = 5,
@@ -22,8 +22,8 @@ static const Move allDirections[] = {
 };
 
 static const Move allComputerMoves[] = {
-    Move::COMPUTER_1,
-    Move::COMPUTER_2
+    Move::RANDOM_1,
+    Move::RANDOM_2
 };
 
 std::ostream& operator<<(std::ostream& out, Move mov);

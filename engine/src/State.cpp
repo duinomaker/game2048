@@ -10,7 +10,7 @@ namespace game2048 {
 
 using namespace std;
 
-State::State(uint64_t board, Player player, Move last_move, int score, int score_delta)
+State::State(board_t board, Player player, Move last_move, int score, int score_delta)
     : m_score(score)
     , m_score_delta(score_delta)
     , m_player(player)
@@ -26,7 +26,7 @@ list<State> State::getAllSubStates() const
     case Player::HUMAN:
         for (Move direction : allDirections) {
             if (Board::isLegalMove(m_board, direction)) {
-                uint64_t board_new = m_board;
+                board_t board_new = m_board;
                 int score_delta = Board::performMove(board_new, direction);
                 states.emplace_back(board_new,
                     Player::COMPUTER, direction,
@@ -37,7 +37,7 @@ list<State> State::getAllSubStates() const
     case Player::COMPUTER:
         for (Move val : allComputerMoves) {
             for (const pair<int, int>& coord : Board::getAllSlots(m_board)) {
-                uint64_t board_new = m_board;
+                board_t board_new = m_board;
                 Board::performMove(board_new, val, coord);
                 states.emplace_back(board_new,
                     Player::HUMAN, val,
@@ -63,7 +63,7 @@ bool State::isEndOfGame() const
 
 ostream& operator<<(ostream& out, const State& state)
 {
-    out << "============================\n";
+    out << "=========================\n";
     Board::represent(state.m_board, out);
     out << "\nLast Move   : " << state.m_last_move
         << "\nNext Player : " << state.m_player

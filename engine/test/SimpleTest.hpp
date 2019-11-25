@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <cmath>
 
 #define INIT_TEST(_name)             \
     std::string _test_name = #_name; \
@@ -13,6 +14,7 @@
 #define TEST(_type) _test_type = #_type;
 
 #define EXPECT_EQ(_a, _b) assert((_a) == (_b));
+#define EXPECT_DOUBLE_EQ(_a, _b) assert(fabs((_a) - (_b)) < 1E-6)
 #define EXPECT_TRUE(_a) assert(_a);
 #define EXPECT_FALSE(_a) assert(!(_a));
 

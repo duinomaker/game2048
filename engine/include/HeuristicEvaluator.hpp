@@ -1,13 +1,13 @@
 #ifndef __GAME2048_HEURISTICEVALUATOR__
 #define __GAME2048_HEURISTICEVALUATOR__
 #include "IEvaluator.hpp"
-#include "Node.hpp"
+#include "Board.hpp"
 
 namespace game2048 {
 
 class HeuristicEvaluator : public IEvaluator {
 public:
-    double evaluate(const Node& node) const;
+    double evaluate(board_t board) const;
 };
 
 } // namespace game2048

@@ -1,6 +1,6 @@
 #ifndef __GAME2048_IEVALUATOR__
 #define __GAME2048_IEVALUATOR__
-#include "Node.hpp"
+#include "Board.hpp"
 
 namespace game2048 {
 
@@ -8,7 +8,7 @@ class IEvaluator {
 public:
     virtual ~IEvaluator() {}
 
-    virtual double evaluate(const Node& node) const = 0;
+    virtual double evaluate(board_t board) const = 0;
 };
 
 } // namespace game2048

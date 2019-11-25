@@ -17,11 +17,11 @@ private:
     int m_score_delta;
     Player m_player;
     Move m_last_move;
-    std::uint64_t m_board;
+    board_t m_board;
 
 public:
     State(
-        std::uint64_t board = 0,
+        board_t board = 0,
         Player player = Player::UNKNOWN, Move last_move = Move::UNKNOWN,
         int score = 0, int score_delta = 0);
 
@@ -32,6 +32,8 @@ public:
     Player getPlayer() const { return m_player; }
 
     Move getLastMove() const { return m_last_move; }
+
+    board_t getBoard() const { return m_board; }
 
     std::list<State> getAllSubStates() const;
 

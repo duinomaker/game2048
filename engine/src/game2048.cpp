@@ -1,30 +1,49 @@
 #include "Board.hpp"
+#include "Engine.hpp"
+#include "HeuristicEvaluator.hpp"
 #include "Move.hpp"
 #include "Node.hpp"
 #include "Player.hpp"
 #include "State.hpp"
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <list>
+#include <memory>
+#include <unordered_map>
 #include <utility>
 
 using namespace std;
+using namespace std::chrono;
 using namespace game2048;
 
 int main(int, char**)
 {
-    int arr_raw[4][4] = {
-        { 11, 10, 4, 0 },
-        { 12, 3 , 4, 0 },
-        { 0 , 3 , 4, 0 },
-        { 0 , 0 , 4, 5 }
+    Board::initialize();
+
+    // int arr[4][4] = {
+    //     { 1, 1, 1, 1 },
+    //     { 2, 2, 2, 0 },
+    //     { 3, 3, 0, 0 },
+    //     { 4, 0, 0, 0 }
+    // };
+    // board_t board = Board::transpose_sub(Board::fromArray(arr));
+
+    int arr[4][4] = {
+        { 0, 0, 0, 0 },
+        { 0, 1, 0, 0 },
+        { 0, 0, 1, 0 },
+        { 0, 0, 0, 0 }
     };
 
-    State state(Board::fromArray(arr_raw), Player::HUMAN);
-    Node node(state);
+    Engine engine(new HeuristicEvaluator);
 
-    clog << node << endl;
+    steady_clock::time_point t1 = steady_clock::now();
+    clog << "Value      : " << engine.evaluate(Board::fromArray(arr), Player::HUMAN) << endl;
+    steady_clock::time_point t2 = steady_clock::now();
 
-    return 0;
+    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+
+    std::cout << "It took " << time_span.count() << " seconds.";
 }
