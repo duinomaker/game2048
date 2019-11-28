@@ -4,40 +4,56 @@
 #include "IEvaluator.hpp"
 #include "Player.hpp"
 #include "State.hpp"
+#include <algorithm>
+#include <cfloat>
+#include <thread>
 
 namespace game2048 {
 
 using namespace std;
 
-const int Engine::MAX_DEPTH = 8;
-const double Engine::MIN_WEIGHT = 0.00000005;
+int Engine::MAX_DEPTH = 0;
+double Engine::MIN_WEIGHT = 0.0;
 
+#ifdef DEBUG
 unsigned hit_count = 0;
 unsigned eval_count = 0;
+#endif
+
+std::ostream& operator<<(std::ostream& out, const EvaluationEntry& entry)
+{
+    out << "{ " << entry.direction << ", " << entry.value << " }";
+    return out;
+}
 
 Engine::Engine(IEvaluator* evaluator)
     : m_evaluator(evaluator)
 #ifdef USE_CACHE
+    , m_mutex()
     , m_cache()
 #endif
 {
-    if (evaluator == nullptr) {
-        m_evaluator.reset(new HeuristicEvaluator());
-    }
 }
 
 #ifdef USE_CACHE
-bool Engine::hitCache(Node& node) const
+bool Engine::hitCache(Node& node)
 {
-    // return false;
-    auto iter = m_cache.find(node.getState().getBoard());
-    if (iter != m_cache.end() && iter->second.depth <= node.getDepth()) {
-        node.setValue(iter->second.value);
-        return true;
+    m_mutex.lock();
+    ////////////////////////////////////////////////////////////////////////////////
+    cache_t::iterator iter1 = m_cache.find(node.getState().getBoard());
+    cache_t::iterator iter2 = m_cache.find(Board::transpose(node.getState().getBoard()));
+    cache_t::iterator iter_end = m_cache.end();
+    ////////////////////////////////////////////////////////////////////////////////
+    m_mutex.unlock();
+
+    if (iter1 != iter_end) {
+        if (iter1->second.depth <= node.getDepth()) {
+            node.setValue(iter1->second.value);
+            return true;
+        }
     }
-    iter = m_cache.find(Board::transpose(node.getState().getBoard()));
-    if (iter != m_cache.end() && iter->second.depth <= node.getDepth()) {
-        node.setValue(iter->second.value);
+    if (iter2 != iter_end && iter2->second.depth <= node.getDepth()) {
+        node.setValue(iter2->second.value);
         return true;
     }
     return false;
@@ -48,7 +64,9 @@ void Engine::_evaluate(Node& node)
 {
 #ifdef USE_CACHE
     if (hitCache(node)) {
+#ifdef DEBUG
         ++hit_count;
+#endif
         return;
     }
 #endif
@@ -57,7 +75,9 @@ void Engine::_evaluate(Node& node)
     if ((node.getDepth() > Engine::MAX_DEPTH) || (node.getWeight() < Engine::MIN_WEIGHT)) {
         value = m_evaluator->evaluate(board);
         node.setValue(value);
+#ifdef DEBUG
         ++eval_count;
+#endif
     } else {
         node.expand();
         if (node.hasChild()) {
@@ -80,25 +100,85 @@ void Engine::_evaluate(Node& node)
         } else {
             value = m_evaluator->evaluate(board);
             node.setValue(value);
+#ifdef DEBUG
             ++eval_count;
+#endif
         }
     }
 
 #ifdef USE_CACHE
-    m_cache.insert({ board, { value, node.getDepth() } });
-    m_cache.insert({ Board::rotate_left(board), { value, node.getDepth() } });
-    m_cache.insert({ Board::rotate_right(board), { value, node.getDepth() } });
-    m_cache.insert({ Board::rotate_twice(board), { value, node.getDepth() } });
+    m_mutex.lock();
+    ////////////////////////////////////////////////////////////////////////////////
+    m_cache[board] = { value, node.getDepth() };
+    // m_cache[Board::rotate_left(board)] = { value, node.getDepth() };
+    // m_cache[Board::rotate_right(board)] = { value, node.getDepth() };
+    // m_cache[Board::rotate_twice(board)] = { value, node.getDepth() };
+    ////////////////////////////////////////////////////////////////////////////////
+    m_mutex.unlock();
 #endif
 }
 
-double Engine::evaluate(board_t board, Player player)
+void Engine::evaluate(EvaluationEntry* entry)
 {
-    Node root(State(board, player), true);
+    Node root(State(entry->board, Player::COMPUTER));
     _evaluate(root);
+#ifdef DEBUG
     clog << "Hit Count  : " << hit_count << "\n"
          << "Eval Count : " << eval_count << endl;
-    return root.getValue();
+#endif
+    entry->value = root.getValue();
+}
+
+static void setSearchLimits(board_t board)
+{
+    Engine::MAX_DEPTH = 4;
+}
+
+Move Engine::findBestMove(board_t board)
+{
+    thread* threads[4] = { nullptr, nullptr, nullptr, nullptr };
+    EvaluationEntry result[4] = {
+        { 0.0, board, Move::UP },
+        { 0.0, board, Move::DOWN },
+        { 0.0, board, Move::LEFT },
+        { 0.0, board, Move::RIGHT }
+    };
+
+    setSearchLimits(board);
+
+    for (EvaluationEntry& entry : result) {
+        if (Board::isLegalMove(entry.board, entry.direction)) {
+            Board::performMove(entry.board, entry.direction);
+            threads[static_cast<int>(entry.direction)]
+                = new thread(&Engine::evaluate, this, &entry);
+        }
+    }
+    for (thread* thread : threads) {
+        if (thread != nullptr) {
+            thread->join();
+            delete thread;
+        }
+    }
+
+    sort(begin(result), end(result));
+
+#ifdef DEBUG
+    clog << "{ "
+         << result[0] << ", "
+         << result[1] << ", "
+         << result[2] << ", "
+         << result[3] << " }" << endl;
+#endif
+
+    Move best_move = Move::UNKNOWN;
+    double best_value = -DBL_MAX;
+    for (const EvaluationEntry& entry : result) {
+        if (entry.value > best_value) {
+            best_move = entry.direction;
+            best_value = entry.value;
+        }
+    }
+    return best_move;
 }
 
 } // namespace game2048

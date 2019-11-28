@@ -4,16 +4,13 @@
 #include "Player.hpp"
 #include <cstdint>
 #include <list>
-#include <utility>
 
 namespace game2048 {
 
 using namespace std;
 
-State::State(board_t board, Player player, Move last_move, int score, int score_delta)
-    : m_score(score)
-    , m_score_delta(score_delta)
-    , m_player(player)
+State::State(board_t board, Player player, Move last_move)
+    : m_player(player)
     , m_last_move(last_move)
     , m_board(board)
 {
@@ -22,33 +19,23 @@ State::State(board_t board, Player player, Move last_move, int score, int score_
 list<State> State::getAllSubStates() const
 {
     list<State> states;
-    switch (m_player) {
-    case Player::HUMAN:
+    if (m_player == Player::HUMAN) {
         for (Move direction : allDirections) {
             if (Board::isLegalMove(m_board, direction)) {
                 board_t board_new = m_board;
-                int score_delta = Board::performMove(board_new, direction);
-                states.emplace_back(board_new,
-                    Player::COMPUTER, direction,
-                    m_score + score_delta, score_delta);
+                Board::performMove(board_new, direction);
+                states.emplace_back(board_new, Player::COMPUTER, direction);
             }
         }
-        break;
-    case Player::COMPUTER:
-        for (Move val : allComputerMoves) {
-            for (const pair<int, int>& coord : Board::getAllSlots(m_board)) {
-                board_t board_new = m_board;
-                Board::performMove(board_new, val, coord);
-                states.emplace_back(board_new,
-                    Player::HUMAN, val,
-                    m_score, 0);
+    } else {
+        board_t temp = m_board;
+        for (board_t val = 1; val; val <<= 4) {
+            if (!(temp & UINT64_C(0xF))) {
+                states.emplace_back(m_board | val, Player::HUMAN, Move::RANDOM_1);
+                states.emplace_back(m_board | (val << 1), Player::HUMAN, Move::RANDOM_2);
             }
+            temp >>= 4;
         }
-        break;
-
-    case Player::UNKNOWN:
-    default:
-        break;
     }
     return states;
 }
@@ -66,8 +53,7 @@ ostream& operator<<(ostream& out, const State& state)
     out << "=========================\n";
     Board::represent(state.m_board, out);
     out << "\nLast Move   : " << state.m_last_move
-        << "\nNext Player : " << state.m_player
-        << "\nScore       : " << state.m_score << " (+" << state.m_score_delta << ")";
+        << "\nNext Player : " << state.m_player;
     return out;
 }
 

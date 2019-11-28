@@ -13,14 +13,13 @@ private:
     double m_weight;
     double m_value;
     int m_depth;
-    std::size_t m_size;
     State m_state;
     std::list<Node> m_children;
 
 public:
-    Node(const State& state = 0, bool isRoot = false);
+    Node(const State& state);
 
-    bool hasChild() const { return m_size != 0; }
+    bool hasChild() const { return m_children.size(); }
 
     double getWeight() const { return m_weight; }
 
@@ -36,7 +35,7 @@ public:
 
     const std::list<Node>& getChildren() const { return m_children; }
 
-    std::size_t expand();
+    void expand();
 
     void sumUpChildNodes();
 };

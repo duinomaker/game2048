@@ -12,7 +12,7 @@ using namespace game2048;
 
 INIT_TEST(NodeTest)
 
-HeuristicEvaluator evaluator;
+Board::initialize();
 
 TEST(expand_weigh_sumup)
 {
@@ -24,7 +24,7 @@ TEST(expand_weigh_sumup)
     };
 
     State state(Board::fromArray(arr), Player::HUMAN);
-    Node root(state, true);
+    Node root(state);
 
     root.expand();
     unsigned count = 0;

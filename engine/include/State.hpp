@@ -3,7 +3,6 @@
 #include "Board.hpp"
 #include "Move.hpp"
 #include "Player.hpp"
-#include <cstdint>
 #include <iostream>
 #include <list>
 
@@ -13,21 +12,12 @@ class State {
     friend std::ostream& operator<<(std::ostream& out, const State& state);
 
 private:
-    int m_score;
-    int m_score_delta;
     Player m_player;
     Move m_last_move;
     board_t m_board;
 
 public:
-    State(
-        board_t board = 0,
-        Player player = Player::UNKNOWN, Move last_move = Move::UNKNOWN,
-        int score = 0, int score_delta = 0);
-
-    int getScore() const { return m_score; }
-
-    void setScore(int score) { m_score = score; }
+    State(board_t board = 0, Player player = Player::UNKNOWN, Move last_move = Move::UNKNOWN);
 
     Player getPlayer() const { return m_player; }
 

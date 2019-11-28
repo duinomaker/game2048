@@ -7,10 +7,15 @@ include_directories(${GAME2048_INC_DIR})
 
 # set the source file
 file(GLOB_RECURSE LIB_SOURCES FOLLOW_SYMLINKS *.cpp)
-list(REMOVE_ITEM LIB_SOURCES ${GAME2048_SRC_DIR}/game2048.cpp)
 
-# build a static library
-add_library(${TARGET_LIB} STATIC ${LIB_SOURCES})
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    # build a static library
+    list(REMOVE_ITEM LIB_SOURCES ${GAME2048_SRC_DIR}/game2048.cpp)
+    add_library(${TARGET_LIB} STATIC ${LIB_SOURCES})
+else()
+    # build a shared library
+    add_library(${TARGET_LIB} SHARED ${LIB_SOURCES})
+endif()
 
 target_compile_features(${TARGET_LIB} PUBLIC cxx_std_11)
 
@@ -37,17 +42,19 @@ install(
     DESTINATION ${GAME2048_LIB_INSTALL_DIR}
 )
 
-add_executable(${TARGET_EXE} game2048.cpp)
-target_compile_features(${TARGET_EXE} PUBLIC cxx_std_11)
-target_link_libraries(${TARGET_EXE} ${TARGET_LIB})
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_executable(${TARGET_EXE} game2048.cpp)
+    target_compile_features(${TARGET_EXE} PUBLIC cxx_std_11)
+    target_link_libraries(${TARGET_EXE} ${TARGET_LIB})
 
-set_target_properties(
-    ${TARGET_EXE} PROPERTIES
-    OUTPUT_NAME ${GAME2048_EXE_NAME}
-    RUNTIME_OUTPUT_DIRECTORY ${GAME2048_BIN_DIR}
-)
+    set_target_properties(
+        ${TARGET_EXE} PROPERTIES
+        OUTPUT_NAME ${GAME2048_EXE_NAME}
+        RUNTIME_OUTPUT_DIRECTORY ${GAME2048_BIN_DIR}
+    )
 
-install(
-    TARGETS ${TARGET_EXE}
-    DESTINATION ${GAME2048_BIN_INSTALL_DIR}
-)
+    install(
+        TARGETS ${TARGET_EXE}
+        DESTINATION ${GAME2048_BIN_INSTALL_DIR}
+    )
+endif()

@@ -7,10 +7,12 @@
 #include <list>
 #include <utility>
 
+#define ROW_MASK UINT64_C(0x000000000000FFFF)
+
 #define _TO_OFFSET(row, col) ((row << 4) | (col << 2))
-#define GET_BOARD_UNIT(board, row, col) ((board >> _TO_OFFSET(row, col)) & UINT64_C(0x000000000000000f))
+#define GET_BOARD_UNIT(board, row, col) ((board >> _TO_OFFSET(row, col)) & UINT64_C(0x000000000000000F))
 #define SET_BOARD_UNIT(board, row, col, val) (board ^= ((GET_BOARD_UNIT(board, row, col) ^ val) << _TO_OFFSET(row, col)))
-#define GET_ROW_UNIT(row, col) ((row >> (col << 2)) & UINT16_C(0x000f))
+#define GET_ROW_UNIT(row, col) ((row >> (col << 2)) & UINT16_C(0x000F))
 #define SET_ROW_UNIT(row, col, val) (row ^= (GET_ROW_UNIT(row, col) ^ val) << (col << 2))
 
 namespace game2048 {
@@ -22,14 +24,8 @@ namespace Board {
 
     extern std::array<board_t, 65536> effect_up;
     extern std::array<board_t, 65536> effect_down;
-    extern std::array<row_t, 65536> effect_left;
-    extern std::array<row_t, 65536> effect_right;
-    extern std::array<int, 65536> score_delta_left;
-    extern std::array<int, 65536> score_delta_right;
-
-    static int _performRowMove(row_t& row, Move direction);
-
-    board_t _toColumn(board_t row);
+    extern std::array<board_t, 65536> effect_left;
+    extern std::array<board_t, 65536> effect_right;
 
     void initialize();
 
@@ -53,11 +49,7 @@ namespace Board {
 
     bool isLegalMove(board_t board, Move direction);
 
-    int performMove(board_t& board, Move direction);
-
-    void performMove(board_t& board, Move direction, const std::pair<int, int>& coord);
-
-    std::list<std::pair<int, int>> getAllSlots(board_t board);
+    void performMove(board_t& board, Move direction);
 
     void represent(board_t board, std::ostream& out = std::clog);
 

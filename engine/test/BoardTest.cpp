@@ -56,7 +56,7 @@ TEST(performMove_up_1)
         { 0, 0, 0, 0 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::UP), 84);
+    Board::performMove(board, Move::UP);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -82,7 +82,7 @@ TEST(performMove_up_2)
         { 0, 0, 4, 5 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::UP), 0);
+    Board::performMove(board, Move::UP);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -108,7 +108,7 @@ TEST(performMove_up_3)
         { 0, 0, 0, 0 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::UP), 32);
+    Board::performMove(board, Move::UP);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -134,7 +134,7 @@ TEST(performMove_down_1)
         { 2, 4, 5, 5 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::DOWN), 84);
+    Board::performMove(board, Move::DOWN);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -160,7 +160,7 @@ TEST(performMove_down_2)
         { 3, 4, 4, 5 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::DOWN), 384);
+    Board::performMove(board, Move::DOWN);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -186,7 +186,7 @@ TEST(performMove_down_3)
         { 6, 7, 5, 9 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::DOWN), 32);
+    Board::performMove(board, Move::DOWN);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -212,7 +212,7 @@ TEST(performMove_left_1)
         { 5, 0, 0, 0 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::LEFT), 84);
+    Board::performMove(board, Move::LEFT);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -238,7 +238,7 @@ TEST(performMove_left_2)
         { 3, 5, 5, 0 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::LEFT), 56);
+    Board::performMove(board, Move::LEFT);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -264,7 +264,7 @@ TEST(performMove_left_3)
         { 4, 0, 0, 0 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::LEFT), 0);
+    Board::performMove(board, Move::LEFT);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -290,7 +290,7 @@ TEST(performMove_right_1)
         { 0, 0, 0, 5 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::RIGHT), 84);
+    Board::performMove(board, Move::RIGHT);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -316,7 +316,7 @@ TEST(performMove_right_2)
         { 0, 3, 5, 5 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::RIGHT), 56);
+    Board::performMove(board, Move::RIGHT);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -342,7 +342,7 @@ TEST(performMove_right_3)
         { 0, 0, 0, 4 }
     };
     board_t board = Board::fromArray(arr_raw);
-    EXPECT_EQ(Board::performMove(board, Move::RIGHT), 0);
+    Board::performMove(board, Move::RIGHT);
 
     int arr[4][4];
     Board::toArray(board, arr);
@@ -486,6 +486,23 @@ TEST(isLegalMove_right_2)
     EXPECT_TRUE(Board::isLegalMove(board, Move::RIGHT))
     Board::performMove(board, Move::RIGHT);
     EXPECT_FALSE(Board::isLegalMove(board, Move::RIGHT))
+}
+ENDTEST()
+
+TEST(isLegalMove)
+{
+    int arr_raw[4][4] = {
+        { 4, 3, 2, 1 },
+        { 3, 2, 1, 0 },
+        { 2, 1, 0, 0 },
+        { 1, 0, 0, 0 }
+    };
+    board_t board = Board::fromArray(arr_raw);
+
+    EXPECT_FALSE(Board::isLegalMove(board, Move::UP))
+    EXPECT_TRUE(Board::isLegalMove(board, Move::DOWN))
+    EXPECT_FALSE(Board::isLegalMove(board, Move::LEFT))
+    EXPECT_TRUE(Board::isLegalMove(board, Move::RIGHT))
 }
 ENDTEST()
 

@@ -32,6 +32,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_definitions(USE_CACHE)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_compile_definitions(DEBUG)
     add_definitions(-DDEBUG)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         add_compile_options(/Od)
@@ -68,8 +69,8 @@ endif()
 #       Project Directories
 #################################################################################
 
-# set(TARGET_LIB "libgame2048")
-# set(TARGET_EXE "game2048")
+set(TARGET_LIB "libgame2048")
+set(TARGET_EXE "game2048")
 set(TARGET_LIB ${GAME2048_LIB_NAME})
 set(TARGET_EXE ${GAME2048_EXE_NAME})
 
@@ -91,4 +92,6 @@ include_directories(${GAME2048_INC_DIR})
 #################################################################################
 
 add_subdirectory(src)
-add_subdirectory(test)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_subdirectory(test)
+endif()
