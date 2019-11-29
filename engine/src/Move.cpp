@@ -20,12 +20,6 @@ ostream& operator<<(ostream& out, Move mov)
     case Move::RIGHT:
         out << "RIGHT";
         break;
-    case Move::RANDOM_1:
-        out << "RANDOM_1";
-        break;
-    case Move::RANDOM_2:
-        out << "RANDOM_2";
-        break;
 
     case Move::UNKNOWN:
     default:

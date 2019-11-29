@@ -3,58 +3,49 @@
 #include "Board.hpp"
 #include "IEvaluator.hpp"
 #include "Move.hpp"
-#include "Node.hpp"
-#include "Player.hpp"
+#include <cstdint>
 #include <iostream>
-#include <memory>
-#ifdef USE_CACHE
 #include <mutex>
 #include <unordered_map>
-#endif
 
 namespace game2048 {
 
+struct CacheEntry {
+    float value;
+    std::uint32_t depth;
+};
+
+using cache_t = std::unordered_map<board_t, CacheEntry>;
+
 struct EvaluationEntry {
-    double value;
-    board_t board;
+    float value;
     Move direction;
+    board_t board;
 
     bool operator<(const EvaluationEntry& rhs) { return value > rhs.value; }
 };
 
 std::ostream& operator<<(std::ostream& out, const EvaluationEntry& entry);
 
-#ifdef USE_CACHE
-struct CacheEntry {
-    double value;
-    int depth;
-};
-using cache_t = std::unordered_map<board_t, CacheEntry>;
-#endif
-
 class Engine {
-public:
-    static int MAX_DEPTH;
-    static double MIN_WEIGHT;
-
 private:
     IEvaluator* m_evaluator;
-#ifdef USE_CACHE
     std::mutex m_mutex;
     cache_t m_cache;
-#endif
 
+private:
+    float hitCache(std::uint32_t depth, board_t board);
 
-public:
-    explicit Engine(IEvaluator* evaluator = nullptr);
-#ifdef USE_CACHE
-    bool hitCache(Node& node);
-#endif
-    void _evaluate(Node& node);
+    float evaluate_human_node(std::uint32_t depth, std::uint32_t max_depth, board_t board, float weight);
+
+    float evaluate_computer_node(std::uint32_t depth, std::uint32_t max_depth, board_t board, float weight);
 
     void evaluate(EvaluationEntry* entry);
 
-    Move findBestMove(board_t board);
+public:
+    explicit Engine(IEvaluator* evaluator = nullptr);
+
+    int findBestMove(board_t board);
 };
 
 } // namespace game2048

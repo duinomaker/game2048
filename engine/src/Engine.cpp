@@ -1,151 +1,115 @@
 #include "Engine.hpp"
 #include "Board.hpp"
-#include "HeuristicEvaluator.hpp"
 #include "IEvaluator.hpp"
-#include "Player.hpp"
-#include "State.hpp"
-#include <algorithm>
 #include <cfloat>
+#include <cstdint>
+#include <iostream>
 #include <thread>
+#ifdef DEBUG
+#include <algorithm>
+#endif
 
 namespace game2048 {
 
 using namespace std;
 
-int Engine::MAX_DEPTH = 0;
-double Engine::MIN_WEIGHT = 0.0;
-
-#ifdef DEBUG
-unsigned hit_count = 0;
-unsigned eval_count = 0;
-#endif
-
-std::ostream& operator<<(std::ostream& out, const EvaluationEntry& entry)
-{
-    out << "{ " << entry.direction << ", " << entry.value << " }";
-    return out;
-}
-
 Engine::Engine(IEvaluator* evaluator)
     : m_evaluator(evaluator)
-#ifdef USE_CACHE
     , m_mutex()
     , m_cache()
-#endif
 {
 }
 
-#ifdef USE_CACHE
-bool Engine::hitCache(Node& node)
+float Engine::hitCache(uint32_t depth, board_t board)
 {
     m_mutex.lock();
     ////////////////////////////////////////////////////////////////////////////////
-    cache_t::iterator iter1 = m_cache.find(node.getState().getBoard());
-    cache_t::iterator iter2 = m_cache.find(Board::transpose(node.getState().getBoard()));
+    cache_t::iterator iter1 = m_cache.find(board);
+    // cache_t::iterator iter2 = m_cache.find(Board::transpose(board));
     cache_t::iterator iter_end = m_cache.end();
     ////////////////////////////////////////////////////////////////////////////////
     m_mutex.unlock();
-
-    if (iter1 != iter_end) {
-        if (iter1->second.depth <= node.getDepth()) {
-            node.setValue(iter1->second.value);
-            return true;
-        }
+    if (iter1 != iter_end && iter1->second.depth <= depth) {
+        return iter1->second.value;
     }
-    if (iter2 != iter_end && iter2->second.depth <= node.getDepth()) {
-        node.setValue(iter2->second.value);
-        return true;
-    }
-    return false;
+    // if (iter2 != iter_end && iter2->second.depth <= depth) {
+    //     return iter2->second.value;
+    // }
+    return 0.0f;
 }
-#endif
 
-void Engine::_evaluate(Node& node)
+float Engine::evaluate_human_node(uint32_t depth, uint32_t max_depth, board_t board, float weight)
 {
-#ifdef USE_CACHE
-    if (hitCache(node)) {
-#ifdef DEBUG
-        ++hit_count;
-#endif
-        return;
-    }
-#endif
-    board_t board = node.getState().getBoard();
-    double value = 0.0;
-    if ((node.getDepth() > Engine::MAX_DEPTH) || (node.getWeight() < Engine::MIN_WEIGHT)) {
-        value = m_evaluator->evaluate(board);
-        node.setValue(value);
-#ifdef DEBUG
-        ++eval_count;
-#endif
-    } else {
-        node.expand();
-        if (node.hasChild()) {
-            if (node.getState().getPlayer() == Player::HUMAN) {
-                double temp;
-                for (Node& child : node.getChildren()) {
-                    _evaluate(child);
-                    if ((temp = child.getValue()) > value) {
-                        value = temp;
-                    }
-                }
-                node.setValue(value);
-            } else {
-                for (Node& child : node.getChildren()) {
-                    _evaluate(child);
-                }
-                node.sumUpChildNodes();
-                value = node.getValue();
+    // float temp = hitCache(depth, board);
+    // if (temp) {
+    //     return temp;
+    // }
+    float temp;
+    float value_max = -FLT_MAX;
+    board_t board_new;
+    for (Move direction : allDirections) {
+        if (Board::isLegalMove(board, direction)) {
+            Board::performMove(board_new = board, direction);
+            // if ((temp = hitCache(depth, board)) == 0.0f) {
+            //     temp = evaluate_computer_node(depth + 1, max_depth, board_new, weight);
+            // }
+            temp = evaluate_computer_node(depth + 1, max_depth, board_new, weight);
+            if (temp > value_max) {
+                value_max = temp;
             }
-        } else {
-            value = m_evaluator->evaluate(board);
-            node.setValue(value);
-#ifdef DEBUG
-            ++eval_count;
-#endif
         }
     }
+    // m_mutex.lock();
+    // ////////////////////////////////////////////////////////////////////////////////
+    // m_cache[board] = { value_max, depth };
+    // ////////////////////////////////////////////////////////////////////////////////
+    // m_mutex.unlock();
+    return value_max;
+}
 
-#ifdef USE_CACHE
+float Engine::evaluate_computer_node(uint32_t depth, uint32_t max_depth, board_t board, float weight)
+{
+    float value_mean = 0.0f;
+    if (depth > max_depth || weight < 0.0001f) {
+        value_mean = m_evaluator->evaluate(board);
+    } else {
+        float temp = hitCache(depth, board);
+        if (temp) {
+            return temp;
+        }
+        float child_count = static_cast<float>(Board::countEmpty(board));
+        weight /= child_count;
+        for (int offset = 0; offset != 64; offset += 4) {
+            if (!((board >> offset) & 0xF)) {
+                value_mean += evaluate_human_node(depth + 1, max_depth, board | (UINT64_C(1) << offset), weight * 0.9f) * 0.9f;
+                value_mean += evaluate_human_node(depth + 1, max_depth, board | (UINT64_C(2) << offset), weight * 0.1f) * 0.1f;
+            }
+        }
+        value_mean /= child_count;
+    }
     m_mutex.lock();
     ////////////////////////////////////////////////////////////////////////////////
-    m_cache[board] = { value, node.getDepth() };
-    // m_cache[Board::rotate_left(board)] = { value, node.getDepth() };
-    // m_cache[Board::rotate_right(board)] = { value, node.getDepth() };
-    // m_cache[Board::rotate_twice(board)] = { value, node.getDepth() };
+    m_cache[board] = { value_mean, depth };
     ////////////////////////////////////////////////////////////////////////////////
     m_mutex.unlock();
-#endif
+    return value_mean;
 }
 
 void Engine::evaluate(EvaluationEntry* entry)
 {
-    Node root(State(entry->board, Player::COMPUTER));
-    _evaluate(root);
-#ifdef DEBUG
-    clog << "Hit Count  : " << hit_count << "\n"
-         << "Eval Count : " << eval_count << endl;
-#endif
-    entry->value = root.getValue();
+    uint32_t max_depth = static_cast<uint32_t>(max(5, Board::countDistinctTiles(entry->board) - 2));
+    entry->value = evaluate_computer_node(0, max_depth, entry->board, 1.0f);
 }
 
-static void setSearchLimits(board_t board)
-{
-    Engine::MAX_DEPTH = 4;
-}
-
-Move Engine::findBestMove(board_t board)
+int Engine::findBestMove(board_t board)
 {
     thread* threads[4] = { nullptr, nullptr, nullptr, nullptr };
     EvaluationEntry result[4] = {
-        { 0.0, board, Move::UP },
-        { 0.0, board, Move::DOWN },
-        { 0.0, board, Move::LEFT },
-        { 0.0, board, Move::RIGHT }
+        { 0.0, Move::UP, board },
+        { 0.0, Move::DOWN, board },
+        { 0.0, Move::LEFT, board },
+        { 0.0, Move::RIGHT, board }
     };
-
-    setSearchLimits(board);
-
     for (EvaluationEntry& entry : result) {
         if (Board::isLegalMove(entry.board, entry.direction)) {
             Board::performMove(entry.board, entry.direction);
@@ -160,9 +124,9 @@ Move Engine::findBestMove(board_t board)
         }
     }
 
+#ifdef DEBUG
     sort(begin(result), end(result));
 
-#ifdef DEBUG
     clog << "{ "
          << result[0] << ", "
          << result[1] << ", "
@@ -171,14 +135,20 @@ Move Engine::findBestMove(board_t board)
 #endif
 
     Move best_move = Move::UNKNOWN;
-    double best_value = -DBL_MAX;
+    float best_value = -FLT_MAX;
     for (const EvaluationEntry& entry : result) {
         if (entry.value > best_value) {
             best_move = entry.direction;
             best_value = entry.value;
         }
     }
-    return best_move;
+    return static_cast<int>(best_move);
+}
+
+std::ostream& operator<<(std::ostream& out, const EvaluationEntry& entry)
+{
+    out << "{ " << entry.direction << ", " << entry.value << " }";
+    return out;
 }
 
 } // namespace game2048

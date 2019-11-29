@@ -9,7 +9,7 @@ class HeuristicEvaluator : public IEvaluator {
 public:
     void initialize() const;
 
-    double evaluate(board_t board) const;
+    float evaluate(board_t board) const;
 };
 
 } // namespace game2048

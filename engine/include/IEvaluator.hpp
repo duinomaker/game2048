@@ -8,7 +8,7 @@ class IEvaluator {
 public:
     virtual ~IEvaluator() {}
 
-    virtual double evaluate(board_t board) const = 0;
+    virtual float evaluate(board_t board) const = 0;
 };
 
 } // namespace game2048

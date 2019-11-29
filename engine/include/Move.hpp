@@ -9,8 +9,6 @@ enum class Move {
     DOWN = 1,
     LEFT = 2,
     RIGHT = 3,
-    RANDOM_1 = 4,
-    RANDOM_2 = 5,
     UNKNOWN = -1
 };
 

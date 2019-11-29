@@ -7,10 +7,11 @@ include_directories(${GAME2048_INC_DIR})
 
 # set the source file
 file(GLOB_RECURSE LIB_SOURCES FOLLOW_SYMLINKS *.cpp)
+list(REMOVE_ITEM LIB_SOURCES ${GAME2048_SRC_DIR}/game2048.cpp)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     # build a static library
-    list(REMOVE_ITEM LIB_SOURCES ${GAME2048_SRC_DIR}/game2048.cpp)
+    list(REMOVE_ITEM LIB_SOURCES ${GAME2048_SRC_DIR}/export.cpp)
     add_library(${TARGET_LIB} STATIC ${LIB_SOURCES})
 else()
     # build a shared library
