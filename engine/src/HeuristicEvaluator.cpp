@@ -108,11 +108,11 @@ void HeuristicEvaluator::initialize() const
         if (line[0] == 10 && line[1] == 10 && line[3] == 10)
             split1024 += 10000000.0f;
         if (line[0] == 10 && line[1] && line[1] != 10 && line[2] == 10)
-            split1024 += 2.0f;
+            split1024 += 4.0f;
         if (line[1] == 10 && line[2] && line[2] != 10 && line[3] == 10)
-            split1024 += 2.0f;
+            split1024 += 4.0f;
         if (line[0] == 10 && ((line[1] && line[1] != 10) || (line[2] && line[2] != 10)) && line[3] == 10)
-            split1024 += 1.0f;
+            split1024 += 2.0f;
 
         heur_score_table[row]
             = SCORE_LOST_PENALTY

@@ -70,7 +70,7 @@ float Engine::evaluate_human_node(uint32_t depth, uint32_t max_depth, board_t bo
 float Engine::evaluate_computer_node(uint32_t depth, uint32_t max_depth, board_t board, float weight)
 {
     float value_mean = 0.0f;
-    if (depth > max_depth || weight < 0.004f) {
+    if (depth > max_depth || weight < 0.005f) {
         value_mean = m_evaluator->evaluate(board);
     } else {
         float temp = hitCache(depth, board);
@@ -97,7 +97,7 @@ float Engine::evaluate_computer_node(uint32_t depth, uint32_t max_depth, board_t
 
 void Engine::evaluate(EvaluationEntry* entry)
 {
-    uint32_t max_depth = static_cast<uint32_t>(max(5, Board::countDistinctTiles(entry->board) - 2));
+    uint32_t max_depth = static_cast<uint32_t>(max(6, Board::countDistinctTiles(entry->board) - 1));
     entry->value = evaluate_computer_node(0, max_depth, entry->board, 1.0f);
 }
 
