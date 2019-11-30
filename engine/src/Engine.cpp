@@ -70,7 +70,7 @@ float Engine::evaluate_human_node(uint32_t depth, uint32_t max_depth, board_t bo
 float Engine::evaluate_computer_node(uint32_t depth, uint32_t max_depth, board_t board, float weight)
 {
     float value_mean = 0.0f;
-    if (depth > max_depth || weight < 0.0001f) {
+    if (depth > max_depth || weight < 0.004f) {
         value_mean = m_evaluator->evaluate(board);
     } else {
         float temp = hitCache(depth, board);
@@ -105,10 +105,10 @@ int Engine::findBestMove(board_t board)
 {
     thread* threads[4] = { nullptr, nullptr, nullptr, nullptr };
     EvaluationEntry result[4] = {
-        { 0.0, Move::UP, board },
-        { 0.0, Move::DOWN, board },
-        { 0.0, Move::LEFT, board },
-        { 0.0, Move::RIGHT, board }
+        { -FLT_MAX, Move::UP, board },
+        { -FLT_MAX, Move::DOWN, board },
+        { -FLT_MAX, Move::LEFT, board },
+        { -FLT_MAX, Move::RIGHT, board }
     };
     for (EvaluationEntry& entry : result) {
         if (Board::isLegalMove(entry.board, entry.direction)) {

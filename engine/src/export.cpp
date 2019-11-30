@@ -2,6 +2,7 @@
 #include "Engine.hpp"
 #include "HeuristicEvaluator.hpp"
 #include "Move.hpp"
+#include <cstdio>
 #define EXPORT __declspec(dllexport)
 using namespace game2048;
 
@@ -32,6 +33,7 @@ EXPORT int find_best_move(board_t board)
 EXPORT void print_board(board_t board)
 {
     Board::represent(board);
+    putchar('\n');
 }
 
 EXPORT board_t perform_move(board_t board, int direction)
